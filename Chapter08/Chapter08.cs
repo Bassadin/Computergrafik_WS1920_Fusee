@@ -30,31 +30,36 @@ namespace FuseeApp
             // Set the clear color for the backbuffer to light green (intensities in R, G, B, A).
             RC.ClearColor = new float4(255, 255, 255, 1.0f);
 
-            // Create a scene with a cube
-            // The three components: one XForm, one Shader and the Mesh
-            var cubeTransform = new TransformComponent
-            {
-                Scale = new float3(1, 1, 1),
-                Translation = new float3(0, 0, 0),
-                Rotation = new float3(0, 0, 0)
-            };
-            var cubeShader = new ShaderEffectComponent
-            {
-                Effect = SimpleMeshes.MakeShaderEffect(new float3(1, 0, 0), new float3(1, 1, 1), 4)
-            };
-            var cubeMesh = SimpleMeshes.CreateCuboid(new float3(10, 10, 10));
-
-            // Assemble the cube node containing the three components
-            var cubeNode = new SceneNodeContainer();
-            cubeNode.Components = new List<SceneComponentContainer>();
-            cubeNode.Components.Add(cubeTransform);
-            cubeNode.Components.Add(cubeShader);
-            cubeNode.Components.Add(cubeMesh);
-
             // Create the scene containing the cube as the only object
             _scene = new SceneContainer();
             _scene.Children = new List<SceneNodeContainer>();
-            _scene.Children.Add(cubeNode);
+
+            int[] xPositions = { -20, 0, 20 };
+
+            foreach (int x in xPositions)
+            {
+                // The three components: one XForm, one Shader and the Mesh
+                var cubeTransform = new TransformComponent
+                {
+                    Scale = new float3(1, 1, 1),
+                    Translation = new float3(x, 0, 0),
+                    Rotation = new float3(0, 0, 0)
+                };
+                var cubeShader = new ShaderEffectComponent
+                {
+                    Effect = SimpleMeshes.MakeShaderEffect(new float3(1, 0, 0), new float3(1, 1, 1), 4)
+                };
+                var cubeMesh = SimpleMeshes.CreateCuboid(new float3(10, 10, 10));
+
+                // Assemble the cube node containing the three components
+                var cubeNode = new SceneNodeContainer();
+                cubeNode.Components = new List<SceneComponentContainer>();
+                cubeNode.Components.Add(cubeTransform);
+                cubeNode.Components.Add(cubeShader);
+                cubeNode.Components.Add(cubeMesh);
+
+                _scene.Children.Add(cubeNode);
+            }
 
             // Create a scene renderer holding the scene above
             _sceneRenderer = new SceneRendererForward(_scene);
@@ -68,19 +73,26 @@ namespace FuseeApp
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
-            foreach (var item in _scene.Children)
+            Diagnostics.Debug(_scene.Children.Count);
+
+            foreach (var item in _scene.Children.Select((value, i) => new { i, value }))
             {
-                item.GetComponent<TransformComponent>().Translation = new float3(0, 5 * M.Sin(3 * TimeSinceStart), 0);
+                var transformComponent = item.value.GetComponent<TransformComponent>();
+                transformComponent.Translation = new float3(
+                    transformComponent.Translation.x,
+                    5 * M.Sin(4 * TimeSinceStart + item.i * 1),
+                    transformComponent.Translation.z
+                );
 
-                float scaleValue = 0.5f * M.Sin(1 * TimeSinceStart) + 1.2f;
+                float scaleValue = 0.3f * M.Sin(2 * TimeSinceStart + item.i * 1) + 1;
 
-                item.GetComponent<TransformComponent>().Scale = new float3(scaleValue, scaleValue, scaleValue);
+                transformComponent.Scale = new float3(scaleValue, scaleValue, scaleValue);
             }
 
             // Setup the camera 
             _camAngle += 90.0f * M.Pi / 180.0f * DeltaTime;
 
-            RC.View = float4x4.CreateTranslation(0, 0, 50) * float4x4.CreateRotationY(_camAngle);
+            RC.View = float4x4.CreateTranslation(0, 0, 60) * float4x4.CreateRotationY(_camAngle);
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);
