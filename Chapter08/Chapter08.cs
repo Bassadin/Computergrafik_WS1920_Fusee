@@ -73,8 +73,6 @@ namespace FuseeApp
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
-            Diagnostics.Debug(_scene.Children.Count);
-
             foreach (var item in _scene.Children.Select((value, i) => new { i, value }))
             {
                 var transformComponent = item.value.GetComponent<TransformComponent>();
