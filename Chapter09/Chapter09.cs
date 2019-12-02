@@ -22,6 +22,8 @@ namespace FuseeApp
         private float _camAngle = 0;
         private TransformComponent _baseTransform;
         private TransformComponent _bodyTransform;
+        private TransformComponent _upperArmTransform;
+        private TransformComponent _lowerArmTransform;
 
 
         SceneContainer CreateScene()
@@ -38,7 +40,19 @@ namespace FuseeApp
             {
                 Rotation = new float3(0, 0, 0),
                 Scale = new float3(1, 1, 1),
-                Translation = new float3(1, 0, 0)
+                Translation = new float3(0, 6, 0)
+            };
+            _upperArmTransform = new TransformComponent
+            {
+                Rotation = new float3(0, 0, 0),
+                Scale = new float3(1, 1, 1),
+                Translation = new float3(2, 8, 0)
+            };
+            _lowerArmTransform = new TransformComponent
+            {
+                Rotation = new float3(0, 0, 0),
+                Scale = new float3(1, 1, 1),
+                Translation = new float3(-2, 8, 0)
             };
 
             // Setup the scene graph
@@ -76,12 +90,56 @@ namespace FuseeApp
                                     // SHADER EFFECT COMPONENT
                                     new ShaderEffectComponent
                                     {
-                                        Effect = SimpleMeshes.MakeShaderEffect(new float3(255, 0, 0), new float3(0.7f, 0.7f, 0.7f), 5)
+                                        Effect = SimpleMeshes.MakeShaderEffect(new float3(1, 0, 0), new float3(0.7f, 0.7f, 0.7f), 5)
                                     },
 
                                     // MESH COMPONENT
                                     SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
 
+                                },
+                                Children = new ChildList
+                                {
+                                    new SceneNodeContainer
+                                    {
+                                        Name = "UpperArm",
+                                        Components = new List<SceneComponentContainer>
+                                        {
+                                            // TRANSFROM COMPONENT
+                                            _upperArmTransform,
+
+                                            // SHADER EFFECT COMPONENT
+                                            new ShaderEffectComponent
+                                            {
+                                                Effect = SimpleMeshes.MakeShaderEffect(new float3(0, 1, 0), new float3(0.7f, 0.7f, 0.7f), 5)
+                                            },
+
+                                            // MESH COMPONENT
+                                            SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
+
+                                        },
+                                        Children = new ChildList
+                                        {
+                                            new SceneNodeContainer
+                                            {
+                                                Name = "LowerArm",
+                                                Components = new List<SceneComponentContainer>
+                                                {
+                                                    // TRANSFROM COMPONENT
+                                                    _lowerArmTransform,
+
+                                                    // SHADER EFFECT COMPONENT
+                                                    new ShaderEffectComponent
+                                                    {
+                                                        Effect = SimpleMeshes.MakeShaderEffect(new float3(0, 0, 1), new float3(0.7f, 0.7f, 0.7f), 5)
+                                                    },
+
+                                                    // MESH COMPONENT
+                                                    SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
+
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
