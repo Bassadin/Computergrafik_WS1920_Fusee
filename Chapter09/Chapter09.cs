@@ -26,6 +26,7 @@ namespace FuseeApp
         //Arms
         private TransformComponent upperArmTransform;
         private TransformComponent lowerArmTransform;
+        private const float robotArmSpeed = 1.8f;
 
         //Grabbers
         private TransformComponent grabber1Transform;
@@ -33,10 +34,13 @@ namespace FuseeApp
 
         private enum GrabberState : int { open = 0, closing = 1, closed = 2, opening = 3 };
         private GrabberState currentGrabberState = GrabberState.open;
+        private const float grabberSpeed = 1.2f;
+        private const float grabber1Limit = -.75f;
+        private const float grabber2Limit = .75f;
 
         //Once the grabber color
-        private float3 grabberColor = new float3(0.2f, 0.2f, 0.2f);
-        private float3 grabberCuboidSize = new float3(3, 8, 3);
+        private float3 grabberColor = new float3(0.3f, 0.3f, 0.3f);
+        private float3 grabberCuboidSize = new float3(2.5f, 7, 2.5f);
 
 
         SceneContainer CreateScene()
@@ -72,15 +76,15 @@ namespace FuseeApp
             //Grabbers
             grabber1Transform = new TransformComponent
             {
-                Rotation = new float3(-1, 0, 0),
+                Rotation = new float3(grabber1Limit, (float)Math.PI / 2, 0),
                 Scale = new float3(1, 1, 1),
-                Translation = new float3(0, 4, 0)
+                Translation = new float3(-.4f, 3.8f, 0)
             };
             grabber2Transform = new TransformComponent
             {
-                Rotation = new float3(1, 0, 0),
+                Rotation = new float3(grabber2Limit, (float)Math.PI / 2, 0),
                 Scale = new float3(1, 1, 1),
-                Translation = new float3(0, 4, 0)
+                Translation = new float3(.4f, 3.8f, 0)
             };
 
             // Setup the scene graph
@@ -278,8 +282,8 @@ namespace FuseeApp
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
             //Rotate robot axes
-            upperArmTransform.Rotation.x += 1.5f * DeltaTime * Keyboard.UpDownAxis;
-            lowerArmTransform.Rotation.x += 1.5f * DeltaTime * Keyboard.WSAxis;
+            upperArmTransform.Rotation.x += robotArmSpeed * DeltaTime * Keyboard.UpDownAxis;
+            lowerArmTransform.Rotation.x += robotArmSpeed * DeltaTime * Keyboard.WSAxis;
 
             //Rotate camera with mouse
             if (Mouse.LeftButton)
@@ -298,8 +302,8 @@ namespace FuseeApp
 
             if (currentGrabberState == GrabberState.closing)
             {
-                grabber1Transform.Rotation.x += .5f * DeltaTime;
-                grabber2Transform.Rotation.x -= .5f * DeltaTime;
+                grabber1Transform.Rotation.x += grabberSpeed * DeltaTime;
+                grabber2Transform.Rotation.x -= grabberSpeed * DeltaTime;
                 if (grabber1Transform.Rotation.x >= 0)
                 {
                     Diagnostics.Debug("Setting Grabber state to closed");
@@ -308,14 +312,14 @@ namespace FuseeApp
                     grabber2Transform.Rotation.x = 0;
                 }
             } else if (currentGrabberState == GrabberState.opening) {
-                grabber1Transform.Rotation.x -= .5f * DeltaTime;
-                grabber2Transform.Rotation.x += .5f * DeltaTime;
-                if (grabber1Transform.Rotation.x <= -1)
+                grabber1Transform.Rotation.x -= grabberSpeed * DeltaTime;
+                grabber2Transform.Rotation.x += grabberSpeed * DeltaTime;
+                if (grabber1Transform.Rotation.x <= grabber1Limit)
                 {
                     Diagnostics.Debug("Setting Grabber state to open");
                     currentGrabberState = GrabberState.open;
-                    grabber1Transform.Rotation.x = -1;
-                    grabber2Transform.Rotation.x = 1;
+                    grabber1Transform.Rotation.x = grabber1Limit;
+                    grabber2Transform.Rotation.x = grabber2Limit;
                 }
             }
 
