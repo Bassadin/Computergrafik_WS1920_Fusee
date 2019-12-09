@@ -17,89 +17,91 @@ namespace FuseeApp
     [FuseeApplication(Name = "Chapter10", Description = "Yet another FUSEE App.")]
     public class Chapter10 : RenderCanvas
     {
-        // Horizontal and vertical rotation Angles for the displayed object 
-        private static float _angleHorz = M.PiOver4, _angleVert;
-        
-        // Horizontal and vertical angular speed
-        private static float _angleVelHorz, _angleVelVert;
-
-        // Overall speed factor. Change this to adjust how fast the rotation reacts to input
-        private const float RotationSpeed = 7;
-
-        // Damping factor 
-        private const float Damping = 0.8f;
-
-        private SceneContainer _rocketScene;
+        private SceneContainer _scene;
         private SceneRendererForward _sceneRenderer;
+        private TransformComponent _baseTransform;
 
-        private bool _keys;
+        SceneContainer CreateScene()
+        {
+            // Initialize transform components that need to be changed inside "RenderAFrame"
+            _baseTransform = new TransformComponent
+            {
+                Rotation = new float3(0, 0, 0),
+                Scale = new float3(1, 1, 1),
+                Translation = new float3(0, 0, 0)
+            };
+
+            // Setup the scene graph
+            return new SceneContainer
+            {
+                Children = new List<SceneNodeContainer>
+                {
+                    new SceneNodeContainer
+                    {
+                        Components = new List<SceneComponentContainer>
+                        {
+                            // TRANSFROM COMPONENT
+                            _baseTransform,
+
+                            // SHADER EFFECT COMPONENT
+                            new ShaderEffectComponent
+                            {
+                                Effect = SimpleMeshes.MakeShaderEffect(new float3(0.7f, 0.7f, 0.7f), new float3(1, 1, 1), 5)
+                            },
+
+                            // MESH COMPONENT
+                            SimpleMeshes.CreateCuboid(new float3(10, 10, 10))
+                        }
+                    },
+                }
+            };
+        }
 
         // Init is called on startup. 
         public override void Init()
         {
-            // Set the clear color for the backbuffer to white (100% intensity in all color channels R, G, B, A).
-            RC.ClearColor = new float4(1, 1, 1, 1);
+            // Set the clear color for the backbuffer to white (100% intentsity in all color channels R, G, B, A).
+            RC.ClearColor = new float4(0.8f, 0.9f, 0.7f, 1);
 
-            // Load the rocket model
-            _rocketScene = AssetStorage.Get<SceneContainer>("RocketModel.fus");
-            
-            // Wrap a SceneRenderer around the model.
-            _sceneRenderer = new SceneRendererForward(_rocketScene);
+            _scene = CreateScene();
+
+            // Create a scene renderer holding the scene above
+            _sceneRenderer = new SceneRendererForward(_scene);
         }
 
         // RenderAFrame is called once a frame
         public override void RenderAFrame()
         {
+            SetProjectionAndViewport();
+
+            _baseTransform.Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
-            // Mouse and keyboard movement
-            if (Keyboard.LeftRightAxis != 0 || Keyboard.UpDownAxis != 0)
-            {
-                _keys = true;
-            }             
+            // Setup the camera 
+            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationX(-(float) Atan(15.0 / 40.0));
 
-            if (Mouse.LeftButton)
-            {
-                _keys = false;
-                _angleVelHorz = -RotationSpeed * Mouse.XVel * DeltaTime * 0.0005f;
-                _angleVelVert = -RotationSpeed * Mouse.YVel * DeltaTime * 0.0005f;
-            }
-            else if (Touch.GetTouchActive(TouchPoints.Touchpoint_0))
-            {
-                _keys = false;
-                var touchVel = Touch.GetVelocity(TouchPoints.Touchpoint_0);
-                _angleVelHorz = -RotationSpeed * touchVel.x * DeltaTime * 0.0005f;
-                _angleVelVert = -RotationSpeed * touchVel.y * DeltaTime * 0.0005f;
-            }
-            else
-            {
-                if (_keys)
-                {
-                    _angleVelHorz = -RotationSpeed * Keyboard.LeftRightAxis * DeltaTime;
-                    _angleVelVert = -RotationSpeed * Keyboard.UpDownAxis * DeltaTime;
-                }
-                else
-                {
-                    var curDamp = (float)System.Math.Exp(-Damping * DeltaTime);
-                    _angleVelHorz *= curDamp;
-                    _angleVelVert *= curDamp;
-                }
-            }
+            // Render the scene on the current render context
+            _sceneRenderer.Render(RC);
 
-            _angleHorz += _angleVelHorz;
-            _angleVert += _angleVelVert;
-
-            // Create the camera matrix and set it as the current View transformation
-            var mtxRot = float4x4.CreateRotationX(_angleVert) * float4x4.CreateRotationY(_angleHorz);
-            var mtxCam = float4x4.LookAt(0, 2, -8, 0, 1.5f, 0, 0, 1, 0);
-            RC.View = mtxCam * mtxRot;
-
-            // Tick any animations and Render the scene loaded in Init()
-            _sceneRenderer.Render(RC);            
-            
             // Swap buffers: Show the contents of the backbuffer (containing the currently rendered frame) on the front buffer.
             Present();
         }
+
+        public void SetProjectionAndViewport()
+        {
+            // Set the rendering area to the entire window size
+            RC.Viewport(0, 0, Width, Height);
+
+            // Create a new projection matrix generating undistorted images on the new aspect ratio.
+            var aspectRatio = Width / (float)Height;
+
+            // 0.25*PI Rad -> 45° Opening angle along the vertical direction. Horizontal opening angle is calculated based on the aspect ratio
+            // Front clipping happens at 1 (Objects nearer than 1 world unit get clipped)
+            // Back clipping happens at 2000 (Anything further away from the camera than 2000 world units gets clipped, polygons will be cut)
+            var projection = float4x4.CreatePerspectiveFieldOfView(M.PiOver4, aspectRatio, 1, 20000);
+            RC.Projection = projection;
+        }        
     }
 }
