@@ -150,9 +150,14 @@ namespace FuseeApp
             List<float3> newVertices = new List<float3>();
 
             //Initialise all arrays
-            float3[] verts = new float3[segmentsAmount + 1];
+            float3[] verts = new float3[(segmentsAmount + 1) * 2];
             float3[] norms = new float3[verts.Length];
             ushort[] tris = new ushort[(verts.Length - 1) * 3];
+
+
+            //---------------------------------
+            //--Create bottom circle segments--
+            //---------------------------------
 
             //Circle Center
             verts[segmentsAmount] = float3.Zero;
@@ -162,7 +167,6 @@ namespace FuseeApp
             verts[0] = new float3(radius, 0, 0);
             norms[0] = float3.UnitY;
 
-            //Create circle segments
             for (int i = 1; i < segmentsAmount; i++)
             {
                 verts[i] = new float3
@@ -175,11 +179,36 @@ namespace FuseeApp
 
                 //Create tris
                 setValuesIntoTrisArray(tris, 3 * i, (ushort)(segmentsAmount), (ushort)i, (ushort)(i - 1));
-
-                Diagnostics.Debug(i);
             }
-
             setValuesIntoTrisArray(tris, segmentsAmount * 3, (ushort)(segmentsAmount), (ushort)0, (ushort)(segmentsAmount - 1));
+
+            // //---------------------------------
+            // //--Create top circle segments--
+            // //---------------------------------
+
+            // //Circle Center
+            // verts[segmentsAmount * 2] = new float3(0, height, 0);
+            // norms[segmentsAmount * 2] = new float3(0, -1, 0);
+
+            // // The first and last point (first point in the list (index 0))
+            // verts[segmentsAmount + 1] = new float3(radius, 0, 0);
+            // norms[segmentsAmount + 1] = float3.UnitY;
+
+            // for (int i = segmentsAmount + 1; i < segmentsAmount * 2; i++)
+            // {
+            //     verts[i] = new float3
+            //     {
+            //         x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
+            //         y = height,
+            //         z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
+            //     };
+            //     norms[i] = float3.UnitY;
+
+            //     //Create tris
+            //     setValuesIntoTrisArray(tris, 3 * i, (ushort)(segmentsAmount * 2), (ushort)i, (ushort)(i - 1));
+            // }
+            // setValuesIntoTrisArray(tris, segmentsAmount * 2 * 3, (ushort)(segmentsAmount * 2), (ushort)0, (ushort)((segmentsAmount * 2) - 1));
+
 
             return new Mesh
             {
