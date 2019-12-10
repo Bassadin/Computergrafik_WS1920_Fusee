@@ -50,7 +50,7 @@ namespace FuseeApp
                             },
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCuboid(new float3(10, 10, 10))
+                            SimpleMeshes.CreateCylinder(1, 1, 6)
                         }
                     },
                 }

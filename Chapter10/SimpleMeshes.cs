@@ -8,7 +8,7 @@ using Fusee.Serialization;
 
 namespace FuseeApp
 {
-    public static class SimpleMeshes 
+    public static class SimpleMeshes
     {
         public static Mesh CreateCuboid(float3 size)
         {
@@ -119,7 +119,7 @@ namespace FuseeApp
                     new float2(0, 1),
                     new float2(0, 0)
                 },
-                BoundingBox = new AABBf(-0.5f * size, 0.5f*size)
+                BoundingBox = new AABBf(-0.5f * size, 0.5f * size)
             };
         }
 
@@ -144,7 +144,42 @@ namespace FuseeApp
 
         public static Mesh CreateCylinder(float radius, float height, int segments)
         {
-            return CreateConeFrustum(radius, radius, height, segments);
+            float deltaSegmentAngle = 2 * (float)Math.PI / segments;
+
+            List<float3> newVertices = new List<float3>();
+
+            //Initialise all arrays
+            float3[] verts = new float3[segments + 1];    // one vertex per segment and one extra for the center point
+            float3[] norms = new float3[segments + 1];    // one normal at each vertex
+            ushort[] tris = new ushort[segments * 3];  // a triangle per segment. Each triangle is made of three indices
+
+            //Circle Center
+            verts[segments] = float3.Zero;
+            norms[segments] = float3.UnitY;
+
+            // The first and last point (first point in the list (index 0))
+            verts[0] = new float3(radius, 0, 0);
+            norms[0] = float3.UnitY;
+
+            //Create circle segments
+            for (int i = 1; i < segments; i++)
+            {
+                verts[i] = new float3
+                {
+                    x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
+                    y = 0,
+                    z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
+                };
+                norms[i] = float3.UnitY;
+            }
+
+            return new Mesh
+            {
+                Vertices = verts,
+                Triangles = tris,
+                Normals = norms,
+                //BoundingBox = new AABBf(-0.5f * height, 0.5f * radius)
+            };
         }
 
         public static Mesh CreateCone(float radius, float height, int segments)
