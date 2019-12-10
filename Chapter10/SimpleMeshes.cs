@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Fusee.Base.Core;
 using Fusee.Engine.Core;
 using Fusee.Math.Core;
 using Fusee.Serialization;
@@ -142,27 +143,27 @@ namespace FuseeApp
         }
 
 
-        public static Mesh CreateCylinder(float radius, float height, int segments)
+        public static Mesh CreateCylinder(float radius, float height, int segmentsAmount)
         {
-            float deltaSegmentAngle = 2 * (float)Math.PI / segments;
+            float deltaSegmentAngle = 2 * (float)Math.PI / segmentsAmount;
 
             List<float3> newVertices = new List<float3>();
 
             //Initialise all arrays
-            float3[] verts = new float3[segments + 1];    // one vertex per segment and one extra for the center point
-            float3[] norms = new float3[segments + 1];    // one normal at each vertex
-            ushort[] tris = new ushort[segments * 3];  // a triangle per segment. Each triangle is made of three indices
+            float3[] verts = new float3[segmentsAmount + 1];
+            float3[] norms = new float3[verts.Length];
+            ushort[] tris = new ushort[(verts.Length - 1) * 3];
 
             //Circle Center
-            verts[segments] = float3.Zero;
-            norms[segments] = float3.UnitY;
+            verts[segmentsAmount] = float3.Zero;
+            norms[segmentsAmount] = float3.UnitY;
 
             // The first and last point (first point in the list (index 0))
             verts[0] = new float3(radius, 0, 0);
             norms[0] = float3.UnitY;
 
             //Create circle segments
-            for (int i = 1; i < segments; i++)
+            for (int i = 1; i < segmentsAmount; i++)
             {
                 verts[i] = new float3
                 {
@@ -171,7 +172,14 @@ namespace FuseeApp
                     z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
                 };
                 norms[i] = float3.UnitY;
+
+                //Create tris
+                setValuesIntoTrisArray(tris, 3 * i, (ushort)(segmentsAmount), (ushort)i, (ushort)(i - 1));
+
+                Diagnostics.Debug(i);
             }
+
+            setValuesIntoTrisArray(tris, segmentsAmount * 3, (ushort)(segmentsAmount), (ushort)0, (ushort)(segmentsAmount - 1));
 
             return new Mesh
             {
@@ -180,6 +188,13 @@ namespace FuseeApp
                 Normals = norms,
                 //BoundingBox = new AABBf(-0.5f * height, 0.5f * radius)
             };
+        }
+
+        private static void setValuesIntoTrisArray(ushort[] trisArray, int triStartIndex, ushort value1, ushort value2, ushort value3)
+        {
+            trisArray[triStartIndex - 1] = value1;
+            trisArray[triStartIndex - 2] = value2;
+            trisArray[triStartIndex - 3] = value3;
         }
 
         public static Mesh CreateCone(float radius, float height, int segments)
