@@ -150,9 +150,9 @@ namespace FuseeApp
             List<float3> newVertices = new List<float3>();
 
             //Initialise all arrays
-            float3[] verts = new float3[(segmentsAmount + 1) * 2];
+            float3[] verts = new float3[(4 * segmentsAmount) + 2];
             float3[] norms = new float3[verts.Length];
-            ushort[] tris = new ushort[(verts.Length - 1) * 3];
+            ushort[] tris = new ushort[4 * 3 * segmentsAmount];
 
 
             //---------------------------------
@@ -160,62 +160,84 @@ namespace FuseeApp
             //---------------------------------
 
             //Circle Center
-            verts[segmentsAmount] = new float3(0, height / 2, 0);
-            norms[segmentsAmount] = float3.UnitY;
+            //Top
+            verts[4 * segmentsAmount] = new float3(0, height / 2, 0);
+            norms[4 * segmentsAmount] = new float3(0, 1, 0);
+            //Bottom
+            verts[4 * segmentsAmount + 1] = new float3(0, -height / 2, 0);
+            norms[4 * segmentsAmount + 1] = new float3(0, -1, 0);
 
-            // The first and last point (first point in the list (index 0))
-            verts[0] = new float3(radius, height / 2, 0);
-            norms[0] = float3.UnitY;
-
-            for (int i = 1; i < segmentsAmount; i++)
+            for (int i = 0; i < segmentsAmount; i++)
             {
-                verts[i] = new float3
+                float3 radialNormal = new float3
+                {
+                    x = (float)(Math.Cos(i * deltaSegmentAngle)),
+                    y = 0,
+                    z = (float)(Math.Sin(i * deltaSegmentAngle))
+                };
+
+                //Upper verts
+                float3 upperVert = new float3
                 {
                     x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
                     y = height / 2,
                     z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
                 };
-                norms[i] = float3.UnitY;
+                //Upper verts with top normal
+                verts[4 * i] = upperVert;
+                norms[4 * i] = new float3(0, 1, 0);
+
+                //Upper verts with radial normal
+                verts[(4 * i) + 1] = upperVert;
+                norms[(4 * i) + 1] = radialNormal;
+
+                //Lower verts
+                float3 lowerVert = new float3
+                {
+                    x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
+                    y = -height / 2,
+                    z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
+                };
+                //bottom verts with radial normal
+                verts[(4 * i) + 2] = lowerVert;
+                norms[(4 * i) + 2] = radialNormal;
+
+                //bottom verts with bottom normal
+                verts[(4 * i) + 3] = lowerVert;
+                norms[(4 * i) + 3] = new float3(0, -1, 0);
 
                 //Create tris
-                setValuesIntoTrisArray(tris, 3 * i, (ushort)(segmentsAmount), (ushort)i, (ushort)(i - 1));
+                if (i > 0)
+                {
+                    //top triangle
+                    tris[12 * (i - 1) + 0] = (ushort)(4 * segmentsAmount);       // top center point
+                    tris[12 * (i - 1) + 1] = (ushort)(4 * i + 0);      // current top segment point
+                    tris[12 * (i - 1) + 2] = (ushort)(4 * (i - 1) + 0);      // previous top segment point
+
+                    // side triangle 1
+                    tris[12 * (i - 1) + 3] = (ushort)(4 * (i - 1) + 2);      // previous lower shell point
+                    tris[12 * (i - 1) + 4] = (ushort)(4 * i + 2);      // current lower shell point
+                    tris[12 * (i - 1) + 5] = (ushort)(4 * i + 1);      // current top shell point
+
+                    // side triangle 2
+                    tris[12 * (i - 1) + 6] = (ushort)(4 * (i - 1) + 2);      // previous lower shell point
+                    tris[12 * (i - 1) + 7] = (ushort)(4 * i + 1);      // current top shell point
+                    tris[12 * (i - 1) + 8] = (ushort)(4 * (i - 1) + 1);      // previous top shell point
+
+                    // bottom triangle
+                    tris[12 * (i - 1) + 9] = (ushort)(4 * segmentsAmount + 1);    // bottom center point
+                    tris[12 * (i - 1) + 10] = (ushort)(4 * (i - 1) + 3);     // current bottom segment point
+                    tris[12 * (i - 1) + 11] = (ushort)(4 * i + 3);     // previous bottom segment point
+                }
             }
-            setValuesIntoTrisArray(tris, segmentsAmount * 3, (ushort)(segmentsAmount), (ushort)0, (ushort)(segmentsAmount - 1));
-
-            // //---------------------------------
-            // //--Create top circle segments--
-            // //---------------------------------
-
-            // //Circle Center
-            // verts[segmentsAmount * 2] = new float3(0, height, 0);
-            // norms[segmentsAmount * 2] = new float3(0, -1, 0);
-
-            // // The first and last point (first point in the list (index 0))
-            // verts[segmentsAmount + 1] = new float3(radius, 0, 0);
-            // norms[segmentsAmount + 1] = float3.UnitY;
-
-            // for (int i = segmentsAmount + 1; i < segmentsAmount * 2; i++)
-            // {
-            //     verts[i] = new float3
-            //     {
-            //         x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
-            //         y = height,
-            //         z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
-            //     };
-            //     norms[i] = float3.UnitY;
-
-            //     //Create tris
-            //     setValuesIntoTrisArray(tris, 3 * i, (ushort)(segmentsAmount * 2), (ushort)i, (ushort)(i - 1));
-            // }
-            // setValuesIntoTrisArray(tris, segmentsAmount * 2 * 3, (ushort)(segmentsAmount * 2), (ushort)0, (ushort)((segmentsAmount * 2) - 1));
+            //setValuesIntoTrisArray(tris, segmentsAmount * 3, (ushort)(segmentsAmount), (ushort)0, (ushort)(segmentsAmount - 1));
 
 
             return new Mesh
             {
                 Vertices = verts,
                 Triangles = tris,
-                Normals = norms,
-                //BoundingBox = new AABBf(-0.5f * height, 0.5f * radius)
+                Normals = norms
             };
         }
 
