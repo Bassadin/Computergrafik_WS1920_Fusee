@@ -160,11 +160,11 @@ namespace FuseeApp
             //---------------------------------
 
             //Circle Center
-            verts[segmentsAmount] = float3.Zero;
+            verts[segmentsAmount] = new float3(0, height / 2, 0);
             norms[segmentsAmount] = float3.UnitY;
 
             // The first and last point (first point in the list (index 0))
-            verts[0] = new float3(radius, 0, 0);
+            verts[0] = new float3(radius, height / 2, 0);
             norms[0] = float3.UnitY;
 
             for (int i = 1; i < segmentsAmount; i++)
@@ -172,7 +172,7 @@ namespace FuseeApp
                 verts[i] = new float3
                 {
                     x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
-                    y = 0,
+                    y = height / 2,
                     z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
                 };
                 norms[i] = float3.UnitY;
