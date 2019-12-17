@@ -147,9 +147,7 @@ namespace FuseeApp
         {
             float deltaSegmentAngle = 2 * (float)Math.PI / segmentsAmount;
 
-            List<float3> newVertices = new List<float3>();
-
-            //Initialise all arrays
+            //Initialize all arrays
             float3[] verts = new float3[(4 * segmentsAmount) + 2];
             float3[] norms = new float3[verts.Length];
             ushort[] tris = new ushort[4 * 3 * segmentsAmount];
