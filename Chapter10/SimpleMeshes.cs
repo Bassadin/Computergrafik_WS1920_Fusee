@@ -169,50 +169,54 @@ namespace FuseeApp
 
             for (int i = 0; i < segmentsAmount; i++)
             {
-                float3 radialNormal = new float3
+                if (i < segmentsAmount)
                 {
-                    x = (float)(Math.Cos(i * deltaSegmentAngle)),
-                    y = 0,
-                    z = (float)(Math.Sin(i * deltaSegmentAngle))
-                };
 
-                //Upper verts
-                float3 upperVert = new float3
-                {
-                    x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
-                    y = height / 2,
-                    z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
-                };
-                //Upper verts with top normal
-                verts[4 * i] = upperVert;
-                norms[4 * i] = new float3(0, 1, 0);
+                    float3 radialNormal = new float3
+                    {
+                        x = (float)(Math.Cos(i * deltaSegmentAngle)),
+                        y = 0,
+                        z = (float)(Math.Sin(i * deltaSegmentAngle))
+                    };
 
-                //Upper verts with radial normal
-                verts[(4 * i) + 1] = upperVert;
-                norms[(4 * i) + 1] = radialNormal;
+                    //Upper verts
+                    float3 upperVert = new float3
+                    {
+                        x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
+                        y = height / 2,
+                        z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
+                    };
+                    //Upper verts with top normal
+                    verts[4 * i] = upperVert;
+                    norms[4 * i] = new float3(0, 1, 0);
 
-                //Lower verts
-                float3 lowerVert = new float3
-                {
-                    x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
-                    y = -height / 2,
-                    z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
-                };
-                //bottom verts with radial normal
-                verts[(4 * i) + 2] = lowerVert;
-                norms[(4 * i) + 2] = radialNormal;
+                    //Upper verts with radial normal
+                    verts[(4 * i) + 1] = upperVert;
+                    norms[(4 * i) + 1] = radialNormal;
 
-                //bottom verts with bottom normal
-                verts[(4 * i) + 3] = lowerVert;
-                norms[(4 * i) + 3] = new float3(0, -1, 0);
+                    //Lower verts
+                    float3 lowerVert = new float3
+                    {
+                        x = (float)(radius * Math.Cos(i * deltaSegmentAngle)),
+                        y = -height / 2,
+                        z = (float)(radius * Math.Sin(i * deltaSegmentAngle))
+                    };
+                    //bottom verts with radial normal
+                    verts[(4 * i) + 2] = lowerVert;
+                    norms[(4 * i) + 2] = radialNormal;
+
+                    //bottom verts with bottom normal
+                    verts[(4 * i) + 3] = lowerVert;
+                    norms[(4 * i) + 3] = new float3(0, -1, 0);
+                }
 
                 //Create tris
                 if (i > 0)
                 {
                     //top triangle
                     tris[12 * (i - 1) + 0] = (ushort)(4 * segmentsAmount);       // top center point
-                    tris[12 * (i - 1) + 1] = (ushort)(4 * i + 0);      // current top segment point
-                    tris[12 * (i - 1) + 2] = (ushort)(4 * (i - 1) + 0);      // previous top segment point
+                    tris[12 * (i - 1) + 1] = (ushort)(4 * (i - 1));      // current top segment point
+                    tris[12 * (i - 1) + 2] = (ushort)(4 * i);      // previous top segment point
 
                     // side triangle 1
                     tris[12 * (i - 1) + 3] = (ushort)(4 * (i - 1) + 2);      // previous lower shell point
@@ -226,12 +230,31 @@ namespace FuseeApp
 
                     // bottom triangle
                     tris[12 * (i - 1) + 9] = (ushort)(4 * segmentsAmount + 1);    // bottom center point
-                    tris[12 * (i - 1) + 10] = (ushort)(4 * (i - 1) + 3);     // current bottom segment point
-                    tris[12 * (i - 1) + 11] = (ushort)(4 * i + 3);     // previous bottom segment point
+                    tris[12 * (i - 1) + 10] = (ushort)(4 * i + 3);     // current bottom segment point
+                    tris[12 * (i - 1) + 11] = (ushort)(4 * (i - 1) + 3);     // previous bottom segment point
                 }
             }
-            //setValuesIntoTrisArray(tris, segmentsAmount * 3, (ushort)(segmentsAmount), (ushort)0, (ushort)(segmentsAmount - 1));
 
+            //final tris
+            //top triangle
+            tris[12 * (segmentsAmount - 1) + 0] = (ushort)(4 * segmentsAmount);       // top center point
+            tris[12 * (segmentsAmount - 1) + 1] = (ushort)(4 * (segmentsAmount - 1));      // current top segment point
+            tris[12 * (segmentsAmount - 1) + 2] = (ushort)0;      // previous top segment point
+
+            // side triangle 1
+            tris[12 * (segmentsAmount - 1) + 3] = (ushort)(4 * (segmentsAmount - 1) + 2);      // previous lower shell point
+            tris[12 * (segmentsAmount - 1) + 4] = (ushort)2;      // current lower shell point
+            tris[12 * (segmentsAmount - 1) + 5] = (ushort)1;      // current top shell point
+
+            // side triangle 2
+            tris[12 * (segmentsAmount - 1) + 6] = (ushort)(4 * (segmentsAmount - 1) + 2);      // previous lower shell point
+            tris[12 * (segmentsAmount - 1) + 7] = (ushort)1;      // current top shell point
+            tris[12 * (segmentsAmount - 1) + 8] = (ushort)(4 * (segmentsAmount - 1) + 1);      // previous top shell point
+
+            // bottom triangle
+            tris[12 * (segmentsAmount - 1) + 9] = (ushort)(4 * segmentsAmount + 1);    // bottom center point
+            tris[12 * (segmentsAmount - 1) + 10] = (ushort)3;     // current bottom segment point
+            tris[12 * (segmentsAmount - 1) + 11] = (ushort)(4 * (segmentsAmount - 1) + 3);     // previous bottom segment point
 
             return new Mesh
             {

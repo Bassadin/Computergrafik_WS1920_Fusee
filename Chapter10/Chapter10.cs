@@ -17,6 +17,8 @@ namespace FuseeApp
     [FuseeApplication(Name = "Chapter10", Description = "Yet another FUSEE App.")]
     public class Chapter10 : RenderCanvas
     {
+        private float _camAngleX, _camAngleY;
+
         private SceneContainer _scene;
         private SceneRendererForward _sceneRenderer;
         private TransformComponent _baseTransform;
@@ -50,7 +52,7 @@ namespace FuseeApp
                             },
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCylinder(16, 4, 8)
+                            SimpleMeshes.CreateCylinder(8, 8, 12)
                         }
                     },
                 }
@@ -74,13 +76,19 @@ namespace FuseeApp
         {
             SetProjectionAndViewport();
 
-            _baseTransform.Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+
+            //Rotate camera with mouse
+            if (Mouse.LeftButton)
+            {
+                _camAngleX += -.01f * DeltaTime * Mouse.Velocity.y;
+                _camAngleY += -.01f * DeltaTime * Mouse.Velocity.x;
+            }
 
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
             // Setup the camera 
-            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationX(-(float) Math.Atan(15.0 / 40.0));
+            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationYX(new float2(_camAngleX,_camAngleY));
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);
@@ -102,6 +110,6 @@ namespace FuseeApp
             // Back clipping happens at 2000 (Anything further away from the camera than 2000 world units gets clipped, polygons will be cut)
             var projection = float4x4.CreatePerspectiveFieldOfView(M.PiOver4, aspectRatio, 1, 20000);
             RC.Projection = projection;
-        }        
+        }
     }
 }
