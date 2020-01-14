@@ -29,8 +29,10 @@ namespace FuseeApp
         // Damping factor 
         private const float Damping = 0.8f;
 
-        private SceneContainer _rocketScene;
+        private SceneContainer _houseScene;
         private SceneRendererForward _sceneRenderer;
+
+        private TransformComponent dachTransform;
 
         private bool _keys;
 
@@ -41,10 +43,12 @@ namespace FuseeApp
             RC.ClearColor = new float4(1, 1, 1, 1);
 
             // Load the rocket model
-            _rocketScene = AssetStorage.Get<SceneContainer>("haus.fus");
+            _houseScene = AssetStorage.Get<SceneContainer>("haus.fus");
+
+            dachTransform = _houseScene.Children.FindNodes(node => node.Name == "Dach").First().GetTransform();
             
             // Wrap a SceneRenderer around the model.
-            _sceneRenderer = new SceneRendererForward(_rocketScene);
+            _sceneRenderer = new SceneRendererForward(_houseScene);
         }
 
         // RenderAFrame is called once a frame
