@@ -103,22 +103,13 @@ namespace FuseeApp
                         }
                         if (newPick != null)
                         {
-                            var mat = newPick.Node.GetMaterial();
-                            _oldColor = mat.Diffuse.Color;
-
-                            _oldColor =(float4)newPick.Node.GetComponent<ShaderEffectComponent>().Effect.GetEffectParam("DiffuseColor");
-                 
-                           mat.Diffuse.Color = new float4(1, 0.4f, 0.4f, 1);
+                            var mat = newPick.Node.GetComponent<ShaderEffectComponent>().Effect;
+                            _oldColor = (float4)mat.GetEffectParam("DiffuseColor");
+                            mat.SetEffectParam("DiffuseColor", new float4(1, 0.4f, 0.4f, 1));
                         }
                         _currentPick = newPick;
                     }
                 }
-            }
-
-            // Mouse and keyboard movement
-            if (Keyboard.LeftRightAxis != 0 || Keyboard.UpDownAxis != 0)
-            {
-                _keys = true;
             }
 
             if (Mouse.LeftButton)
@@ -127,34 +118,27 @@ namespace FuseeApp
                 _angleVelHorz = -RotationSpeed * Mouse.XVel * DeltaTime * 0.0005f;
                 _angleVelVert = -RotationSpeed * Mouse.YVel * DeltaTime * 0.0005f;
             }
-            else if (Touch.GetTouchActive(TouchPoints.Touchpoint_0))
-            {
-                _keys = false;
-                var touchVel = Touch.GetVelocity(TouchPoints.Touchpoint_0);
-                _angleVelHorz = -RotationSpeed * touchVel.x * DeltaTime * 0.0005f;
-                _angleVelVert = -RotationSpeed * touchVel.y * DeltaTime * 0.0005f;
-            }
             else
             {
-                if (_keys)
-                {
-                    _angleVelHorz = -RotationSpeed * Keyboard.LeftRightAxis * DeltaTime;
-                    _angleVelVert = -RotationSpeed * Keyboard.UpDownAxis * DeltaTime;
-                }
-                else
-                {
-                    var curDamp = (float)System.Math.Exp(-Damping * DeltaTime);
-                    _angleVelHorz *= curDamp;
-                    _angleVelVert *= curDamp;
-                }
+                var curDamp = (float)System.Math.Exp(-Damping * DeltaTime);
+                _angleVelHorz *= curDamp;
+                _angleVelVert *= curDamp;
             }
+
+
+            if (_currentPick != null)
+            {
+                _currentPick.Node.GetComponent<TransformComponent>().Rotation.x += 3 * Keyboard.LeftRightAxis * DeltaTime;
+                _currentPick.Node.GetComponent<TransformComponent>().Rotation.z += 3 * Keyboard.UpDownAxis * DeltaTime;
+            }
+
 
             _angleHorz += _angleVelHorz;
             _angleVert += _angleVelVert;
 
             // Create the camera matrix and set it as the current View transformation
             var mtxRot = float4x4.CreateRotationX(_angleVert) * float4x4.CreateRotationY(_angleHorz);
-            var mtxCam = float4x4.LookAt(0, 2, -12, 0, 1.5f, 0, 0, 1, 0);
+            var mtxCam = float4x4.LookAt(0, 0, -14, 0, 1.5f, 0, 0, 1, 0);
             RC.View = mtxCam * mtxRot;
 
             // Tick any animations and Render the scene loaded in Init()
